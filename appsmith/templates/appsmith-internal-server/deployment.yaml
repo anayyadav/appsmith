@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    {{- with.Values.appsmith_internal_server.podLabels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  name: {{ .Values.appsmith_internal_server.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  progressDeadlineSeconds: 600
+  replicas: {{ .Values.appsmith_internal_server.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      {{- with.Values.appsmith_internal_server.podLabels }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+  strategy:
+    {{- toYaml .Values.appsmith_internal_server.strategy | nindent 10 }}
+  template:
+    metadata:
+      labels:
+        {{- with.Values.appsmith_internal_server.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: application-config
+        - configMapRef:
+            name: encryption-config
+        image: appsmith/appsmith-server:latest
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /api/v1/users/me
+            port: 8080
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: appsmith_internal_server
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.appsmith_internal_server.deployment.resources | nindent 10 }}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30

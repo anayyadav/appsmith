@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: appsmith-editor
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - port: {{ .Values.appsmith_editor.service.port }}
+    protocol: TCP
+    targetPort: {{ .Values.appsmith_editor.service.targetPort }}
+  selector:
+    {{- with.Values.appsmith_editor.podLabels }}
+        {{- toYaml . | nindent 4 }}
+    {{- end }}
+  sessionAffinity: None
+  type: {{ .Values.appsmith_editor.service.type }}

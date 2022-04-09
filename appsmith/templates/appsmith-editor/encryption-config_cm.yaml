@@ -1,0 +1,9 @@
+apiVersion: v1
+{{- with .Values.appsmith_editor.encryption_config.data }}
+data:
+{{- toYaml . | nindent 2 }}
+{{- end }}
+kind: ConfigMap
+metadata:
+  name: encryption-config
+  namespace: {{ .Values.namespace }}

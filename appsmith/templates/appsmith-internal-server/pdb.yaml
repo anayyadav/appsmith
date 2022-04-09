@@ -1,0 +1,24 @@
+{{- if .Values.appsmith_internal_server.pdb.enabled }}
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: appsmith-internal-server
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- with.Values.appsmith_internal_server.podLabels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  {{- if .Values.appsmith_internal_server.pdb.minAvailable }}
+  minAvailable: {{ .Values.appsmith_internal_server.pdb.minAvailable }}
+  {{- else if .Values.appsmith_internal_server.pdb.maxUnavailable }}
+  maxUnavailable: {{ .Values.appsmith_internal_server.pdb.maxUnavailable }}
+  {{- else }}
+  minAvailable: 0
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- with.Values.appsmith_internal_server.podLabels }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+{{- end }}

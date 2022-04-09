@@ -1,0 +1,19 @@
+{{- if .Values.appsmith_editor.hpa.enabled }}
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: appsmith-editor
+  namespace: {{ .Values.namespace }}
+  labels:
+    {{- with.Values.appsmith_editor.podLabels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .Values.appsmith_editor.name }}
+  minReplicas: {{ .Values.appsmith_editor.hpa.minReplicas }}
+  maxReplicas: {{ .Values.appsmith_editor.hpa.maxReplicas }}
+  targetCPUUtilizationPercentage: {{ .Values.appsmith_editor.hpa.targetCPUUtilizationPercentage }}
+{{- end }}

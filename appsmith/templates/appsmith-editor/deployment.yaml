@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appsmith_editor.name }}
+  labels:
+    {{- with.Values.appsmith_editor.podLabels }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.appsmith_editor.deployment.replicaCount }}
+  selector:
+    matchLabels:
+      {{- with.Values.appsmith_editor.podLabels }}
+        {{- toYaml . | nindent 6 }}
+      {{- end }}
+  strategy:
+    {{- toYaml .Values.appsmith_editor.strategy | nindent 10 }}
+  template:
+    metadata:
+      labels:
+        {{- with.Values.appsmith_editor.podLabels }}
+          {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      containers:
+      - envFrom:
+        - configMapRef:
+            name: application-config
+        image: {{ .Values.appsmith_editor.deployment.image.repository }}
+        imagePullPolicy: {{ .Values.appsmith_editor.deployment.image.pullPolicy }}
+        name: nginx
+        ports:
+        - containerPort: 80
+          protocol: TCP
+        resources:
+          {{- toYaml .Values.appsmith_editor.deployment.resources | nindent 10 }}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /nginx.conf.template
+          name: nginx-config-template
+          subPath: nginx.conf.template
+      restartPolicy: Always
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - configMap:
+          defaultMode: 420
+          name: nginx-config-template
+        name: nginx-config-template
